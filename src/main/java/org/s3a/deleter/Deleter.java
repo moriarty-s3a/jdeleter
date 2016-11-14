@@ -13,6 +13,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Stream;
 
@@ -96,6 +97,7 @@ public class Deleter {
         int elements = datePath.getNameCount();
         Calendar time = Calendar.getInstance();
         time.clear();
+        time.setTimeZone(TimeZone.getTimeZone("UTC"));
         Integer year = Integer.parseInt(datePath.getName(0).toString());
         time.set(Calendar.YEAR, year);
         if (elements == 1) {
