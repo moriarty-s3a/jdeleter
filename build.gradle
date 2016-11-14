@@ -1,0 +1,41 @@
+plugins {
+    id 'java'
+    id 'idea'
+    id 'com.github.johnrengelman.shadow' version '1.2.3'
+}
+
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
+group 'org.s3a.deleter'
+
+sourceCompatibility = 1.8
+
+shadowJar {
+    baseName = 'deleter'
+    version = '1.0'
+}
+
+jar {
+    baseName = 'deleter'
+    version = '1.0'
+    manifest {
+        attributes (
+                'Main-Class': 'org.s3a.deleter.Deleter'
+        )
+    }
+}
+
+dependencies {
+    compile 'com.fasterxml.jackson.core:jackson-core:2.8.3'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.8.3'
+    compile 'org.projectlombok:lombok:1.16.10'
+    compile 'org.slf4j:slf4j-api:1.7.21'
+    compile 'ch.qos.logback:logback-classic:1.1.7'
+    compile 'org.codehaus.groovy:groovy:2.4.7'
+    compile 'args4j:args4j:2.33'
+
+    testCompile 'junit:junit:4.12'
+}
