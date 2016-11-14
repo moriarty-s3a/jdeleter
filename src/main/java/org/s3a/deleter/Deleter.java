@@ -14,7 +14,6 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
-import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -46,8 +45,6 @@ public class Deleter {
         }
         Map<String, CompanyConfig> configMap = convertConfigToMap(config);
         walkTreeAsStream(basePath, configMap);
-        // This version seems to work, but takes forever and destroys the stack.
-//        walkTreeWithForkJoin(basePath, configMap);
     }
 
     private static void walkTreeAsStream(Path basePath, Map<String, CompanyConfig> configMap) throws IOException {
@@ -132,31 +129,6 @@ public class Deleter {
         time.add(Calendar.MINUTE, 1);
         time.add(Calendar.SECOND, -1);
         return time;
-    }
-
-    private static void walkTreeWithForkJoin(Path basePath, Map<String, CompanyConfig> configMap) throws IOException {
-        Stream<Path> pathStream = Files.walk(basePath, 1);
-        ForkJoinPool pool = new ForkJoinPool(Runtime.getRuntime().availableProcessors());
-        // We only walk to a depth of 1 here, so ordering is irrelevant compared to the streaming method.
-        pathStream.filter(path -> {
-            Path relativePath = basePath.relativize(path);
-            return (Files.exists(path) && Files.isDirectory(path) && relativePath.getNameCount() == 1 && !"".equals(relativePath.getName(0).toString()));
-        }).forEach(path -> {
-            log.debug("Path = " + path.toString());
-            Path relativePath = basePath.relativize(path);
-            String companyId = relativePath.getName(0).toString();
-            CompanyConfig config = configMap.get(companyId);
-            if (config == null) {
-                config = configMap.get("default");
-            }
-            Calendar deleteTime = Calendar.getInstance();
-            deleteTime.add(Calendar.DAY_OF_MONTH, -1 * config.getRetention());
-            log.debug("Company id = " + companyId);
-            long start = System.currentTimeMillis();
-            pool.invoke(new FileWalkDeleteTask(path, path.getNameCount(), deleteTime));
-            long end = System.currentTimeMillis();
-            log.debug("Deletion took: " + (end - start));
-        });
     }
 
     private Map<String, CompanyConfig> convertConfigToMap(Config config) {
